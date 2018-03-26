@@ -1,0 +1,85 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r setup}
+library(readxl)
+Book4 <- read_excel("Book4.xlsx", range = "c28:f58")
+
+convertRank = function(val){
+  return (rank(val, ties.method = "min"))
+}
+
+df = data.frame(
+  q1 = convertRank(c(Book4$Q1)),
+  q2 = convertRank(c(Book4$Q2)),
+  q3 = convertRank(c(Book4$Q3)),
+  q4 = convertRank(c(Book4$Q4))
+)
+
+drawPlot1 = function(val, clr){
+  x = c(1:30)
+  
+  plot(x, val, ylim=c(0, 30), col=clr)
+  par(new=T)
+}
+
+makeVector = function(val){
+  len = 30
+  ret = c()
+
+  for (i in 1:len){
+    ret = c(ret, calc(val[i,]))
+  }
+  
+  return(ret)
+}
+
+calc = function(p){
+  a = 0.85819
+  b = 0.07058
+  c = -0.00324
+  d = 1.03151
+  
+  return(a*p$q1 + b*p$q2 + c*p$q3 + d)
+}
+
+drawPlot2 = function(val){
+  x = c(1:30)
+  
+  plot(x, val, ylim=c(0, 30), col="black", type = "l")
+}
+
+```
+## convert interval data to rank data
+Before
+`r Book4`
+
+After
+`r df`
+
+## 1. Obtain regression equation
+```{r}
+ret = lm(df$q4~., data=df)
+summary(ret)
+```
+
+## 2. Evaluate effectiveness of equation and significance of regression coefficients
+```{r}
+drawPlot1(df$q1, "red")
+drawPlot1(df$q2, "green")
+drawPlot1(df$q3, "blue")
+drawPlot1(df$q4, "black")
+drawPlot2(makeVector(df))
+```
+
+## 3. What can you say from cause-effect analysis?(what would give larger impact to overall satisfaction)?
+Mutiple R-squared is 97%.  This model is trustable.  
+
+Q1 P value is less than 5%.  
+Q1 (contents of class) has positive impact to overall satisfuction.  
+
+Other P values are more than 5%.  
+Q2 (understanding of contents) has almost no impact to overall satisfuction.  
+Q3 (educational facilities) has almost no impact to to overall satisfuction.
